@@ -18,11 +18,10 @@ n, bins, patches = plt.hist(cpu_cnt, num_bins, facecolor='blue', alpha=0.5)
 plt.show()
 pp = PdfPages('cpucount-hist.pdf')
 pp.savefig(plt.figure())
-
 # 1. read one cpu file 
 # 2. scale the usage with sigma(max_util*cpu_count)/sigma(cpu_count)
 with gzip.open('data/vm_cpu_readings-file-1-of-125.csv.gz', "r") as csvDataFile:
-    ts_cpu_util = [0 for x in range(30000)]
+    ts_cpu_util = [0 for x in range(100)]
     vm_cpu = csv.reader(csvDataFile)
     ts = int(next(vm_cpu)[0]);
     csvDataFile.seek(0)
@@ -32,10 +31,17 @@ with gzip.open('data/vm_cpu_readings-file-1-of-125.csv.gz', "r") as csvDataFile:
         if not int(vm[0]) == ts:
             ts_cpu_util[ts/300] = sigma_max_util/total_cpus;
             sigma_max_util = 0;
-            total_cpus = 0;                                                                                                                                                                                                                                          
+            total_cpus = 0;
+            ts = int(vm[0]);                                                                                                                                                                                                                                        
         n_cpu = vm_to_cpu[vm[1]][0];
         sigma_max_util += (float(n_cpu)*float(vm[3]));
         total_cpus += n_cpu;
     
-    plt.plot(ts_cpu_util)
+    f, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
+    ax1.plot(ts_cpu_util, 'r--', [max_cpu_count*100]*100, 's');
+    
+    ax2.plot(ts_cpu_util);
+    plt.show();
+    
+    sigma_max_util = 0;
     
